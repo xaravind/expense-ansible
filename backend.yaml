@@ -2,17 +2,17 @@
   hosts: backend
   become: yes
   vars:
-    login_password: db.daws78s.online
-    login_host: ExpenseApp@1
+    login_password: ExpenseApp@1
+    login_host: db.daws78s.online
   tasks:
   - name: disable default nodejs
-      ansible.builtin.command: dnf module disable nodejs -y
+    ansible.builtin.command: dnf module disable nodejs -y
 
   - name: enable  nodejs:20
-      ansible.builtin.command: dnf module enable nodejs:20 -y
+    ansible.builtin.command: dnf module enable nodejs:20 -y
 
   - name: install nodejs
-      ansible.builtin.dnf:
+    ansible.builtin.dnf:
       name: "{{ item }}"
       state: installed
     loop:
@@ -20,41 +20,41 @@
     - mysql
   
   - name: Adding application User
-      ansible.builtin.user:
-        name: expense
-        create_home: yes
+    ansible.builtin.user:
+      name: expense
+      create_home: yes
 
   - name: Creating app directory
-      ansible.builtin.file:
-        path: /app
-        state: directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
 
   - name: Downloading the application code
-      ansible.builtin.get_url:
-        url: https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip
-        dest: /tmp/backend.zip
+    ansible.builtin.get_url:
+      url: https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip
+      dest: /tmp/backend.zip
   
   - name: extracting zip file
-      ansible.builtin.unarchive:
-        src: /tmp/backend.zip
-        dest: /app
-        remote_src: yes 
+    ansible.builtin.unarchive:
+      src: /tmp/backend.zip
+      dest: /app
+      remote_src: yes 
   
-    - name: install npm dependencies
-        ansible.builtin.command: npm install
-        args:
+  - name: install npm dependencies
+    ansible.builtin.command: npm install
+    args:
           chdir: /app
 
-    - name: Copying service file
-       ansible.builtin.copy:
-        src: backend.service
-        dest: /etc/systemd/system/backend.service     
+  - name: Copying service file
+    ansible.builtin.copy:
+      src: backend.service
+      dest: /etc/systemd/system/backend.service     
 
-    - name: install python mysql dependencies
-    ansible.builtin.pip: 
-      name:
-      - PyMySQL # to connect MySQL DB from Ansible
-      - cryptography
+      - name: install python mysql dependencies
+      ansible.builtin.pip: 
+        name:
+        - PyMySQL # to connect MySQL DB from Ansible
+        - cryptography
       executable: pip3.9 # pip3.11 if python version is 3.11
 
   - name: import data into mysql
